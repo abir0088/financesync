@@ -284,7 +284,10 @@
 
   <script>
     const CLIENT_ID = '646746298145-27prvdmi5kbc5kseb9odl0nf5d72dd2g.apps.googleusercontent.com'; 
-    const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile';
+    
+    // 🔥 FIX 1: Added userinfo.email scope so the email actually populates
+    const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
+    
     const SHEET_NAME = 'FinanceSync Database';
 
     let tokenClient;
@@ -411,44 +414,68 @@
       document.getElementById('dashboardView').classList.remove('hidden');
       document.getElementById('trackerTabs').innerHTML = '<span class="text-sm text-slate-500 font-mono-data animate-pulse px-4 py-2 border border-white/10 rounded-full bg-white/5">SYNCING_DATA...</span>';
       
-      let profileImgHtml = `<div class="w-10 h-10 rounded-full bg-black/50 border border-white/20 flex items-center justify-center text-cyan-400 font-bold font-outfit shadow-sm">U</div>`;
+      let profileImgHtml = `<div class="w-10 h-10 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-cyan-400 font-bold font-outfit shadow-sm">U</div>`;
       try {
         const userRes = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', { headers: { 'Authorization': `Bearer ${accessToken}` } });
         const userData = await userRes.json();
-        userEmail = userData.email || '';
+        
+        userEmail = userData.email || 'Email Not Found';
+        
+        // Dynamic Avatar Initial
+        let initial = 'U';
+        if (userData.given_name) initial = userData.given_name.charAt(0).toUpperCase();
+        else if (userEmail !== 'Email Not Found') initial = userEmail.charAt(0).toUpperCase();
+
         if (userData.picture) {
           profileImgHtml = `<img src="${userData.picture}" alt="Profile" class="w-10 h-10 rounded-full border border-white/20 shadow-sm transform hover:scale-105 transition-transform">`;
+        } else {
+          profileImgHtml = `<div class="w-10 h-10 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-cyan-400 font-bold font-outfit shadow-sm">${initial}</div>`;
         }
       } catch (e) { console.error("Could not load profile picture", e); }
 
+      // 🔥 FIX 2: Rebuilt the entire Dropdown Menu (Solid Background, Z-Index fix, added options)
       document.getElementById('navAuthSection').innerHTML = `
         <div class="relative">
           <button id="profileButton" onclick="toggleProfileMenu(event)" class="flex items-center focus:outline-none ring-2 ring-transparent hover:ring-cyan-500/50 rounded-full transition-all">
             ${profileImgHtml}
           </button>
-          <div id="profileDropdownMenu" class="absolute right-0 mt-4 w-72 glass-panel border border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] py-2 hidden z-50 animate-scale-up">
-            <div class="px-5 py-4 border-b border-white/5">
+          
+          <div id="profileDropdownMenu" class="absolute right-0 mt-4 w-[280px] bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.9)] py-2 hidden z-[100] animate-scale-up">
+            
+            <!-- Auth Header -->
+            <div class="px-5 py-4 border-b border-white/5 bg-white/[0.02]">
               <p class="text-[10px] font-mono-data tracking-widest text-cyan-500 font-bold uppercase mb-1">Authenticated As</p>
-              <p class="text-sm font-outfit font-bold text-white truncate">${userEmail}</p>
+              <p class="text-sm font-outfit font-bold text-white truncate" title="${userEmail}">${userEmail}</p>
             </div>
             
-            <div class="py-2 px-2">
-              <button onclick="openGoogleSheet()" class="w-full text-left px-4 py-3 text-sm font-outfit text-slate-300 hover:bg-white/5 hover:text-white rounded-xl flex items-center gap-3 transition-colors">
+            <!-- Main Options -->
+            <div class="py-2 px-3 space-y-1">
+              <a href="https://myaccount.google.com/" target="_blank" class="w-full text-left px-3 py-2.5 text-sm font-outfit text-slate-300 hover:bg-white/5 hover:text-white rounded-xl flex items-center gap-3 transition-colors">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                Google Account Settings
+              </a>
+              <button onclick="openGoogleSheet()" class="w-full text-left px-3 py-2.5 text-sm font-outfit text-slate-300 hover:bg-white/5 hover:text-white rounded-xl flex items-center gap-3 transition-colors">
                 <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                 Open Google Database
               </button>
-              <button onclick="exportDataCSV()" class="w-full text-left px-4 py-3 text-sm font-outfit text-slate-300 hover:bg-white/5 hover:text-white rounded-xl flex items-center gap-3 transition-colors mt-1">
+              <button onclick="exportDataCSV()" class="w-full text-left px-3 py-2.5 text-sm font-outfit text-slate-300 hover:bg-white/5 hover:text-white rounded-xl flex items-center gap-3 transition-colors">
                 <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                 Export CSV Ledger
               </button>
+              <a href="https://myaccount.google.com/connections" target="_blank" class="w-full text-left px-3 py-2.5 text-sm font-outfit text-slate-300 hover:bg-white/5 hover:text-white rounded-xl flex items-center gap-3 transition-colors">
+                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                Manage App Permissions
+              </a>
             </div>
 
-            <div class="border-t border-white/5 pt-2 px-2 pb-1">
-              <button onclick="handleSignOut()" class="w-full text-left px-4 py-3 text-sm font-outfit text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl flex items-center gap-3 transition-colors">
+            <!-- Danger Zone -->
+            <div class="border-t border-white/5 pt-2 px-3 pb-2 mt-1">
+              <button onclick="handleSignOut()" class="w-full text-left px-3 py-2.5 text-sm font-outfit text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl flex items-center gap-3 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                 Terminate Session
               </button>
             </div>
+            
           </div>
         </div>
       `;
