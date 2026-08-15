@@ -285,7 +285,7 @@
   <script>
     const CLIENT_ID = '646746298145-27prvdmi5kbc5kseb9odl0nf5d72dd2g.apps.googleusercontent.com'; 
     
-    // 🔥 FIX 1: Added userinfo.email scope so the email actually populates
+    // 🔥 Added userinfo.email scope so the email actually populates
     const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
     
     const SHEET_NAME = 'FinanceSync Database';
@@ -433,7 +433,7 @@
         }
       } catch (e) { console.error("Could not load profile picture", e); }
 
-      // 🔥 FIX 2: Rebuilt the entire Dropdown Menu (Solid Background, Z-Index fix, added options)
+      // 🔥 Rebuilt the entire Dropdown Menu (Solid Background, Z-Index fix, added options)
       document.getElementById('navAuthSection').innerHTML = `
         <div class="relative">
           <button id="profileButton" onclick="toggleProfileMenu(event)" class="flex items-center focus:outline-none ring-2 ring-transparent hover:ring-cyan-500/50 rounded-full transition-all">
