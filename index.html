@@ -5,174 +5,215 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FinanceSync Pro</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Imported Premium Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #0f172a; } /* slate-900 */
+    :root {
+      --obsidian: #050505;
+      --glass-bg: rgba(255, 255, 255, 0.02);
+      --glass-border: rgba(255, 255, 255, 0.06);
+    }
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background-color: var(--obsidian); 
+      color: #94a3b8; 
+      overflow-x: hidden;
+    }
+    .font-outfit { font-family: 'Outfit', sans-serif; }
+    .font-mono-data { font-family: 'JetBrains Mono', monospace; }
+    
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .bg-grid-pattern {
-      background-size: 40px 40px;
-      background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes scaleUp {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-    .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
-    .animate-scale-up { animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     
-    /* Dark mode select input fix */
-    select option { background-color: #1e293b; color: #f1f5f9; }
+    /* Cinematic Glassmorphism System */
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    }
+    .glass-input {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+      transition: all 0.3s ease;
+    }
+    .glass-input:focus {
+      outline: none;
+      border-color: rgba(6, 182, 212, 0.6);
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+      background: rgba(6, 182, 212, 0.02);
+    }
     
-    /* Input date icon inverted for dark mode */
-    ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.7; cursor: pointer; }
+    /* Ambient Background Glows */
+    .ambient-glow-1 {
+      position: fixed; top: -10%; left: -10%; width: 50vw; height: 50vw;
+      background: radial-gradient(circle, rgba(6,182,212,0.08) 0%, rgba(0,0,0,0) 70%);
+      z-index: -1; filter: blur(60px); pointer-events: none;
+    }
+    .ambient-glow-2 {
+      position: fixed; bottom: -20%; right: -10%; width: 60vw; height: 60vw;
+      background: radial-gradient(circle, rgba(59,130,246,0.05) 0%, rgba(0,0,0,0) 70%);
+      z-index: -1; filter: blur(60px); pointer-events: none;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes scaleUp { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-scale-up { animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    
+    select option { background-color: #0f172a; color: #f1f5f9; }
+    ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.5; cursor: pointer; }
   </style>
 </head>
 
-<body class="text-slate-300 antialiased min-h-screen pb-12 selection:bg-cyan-500/30 selection:text-cyan-200" onclick="closeProfileDropdown(event)">
+<body class="antialiased min-h-screen pb-12 selection:bg-cyan-500/30 selection:text-cyan-200" onclick="closeProfileDropdown(event)">
+  
+  <!-- Ambient Background Lighting -->
+  <div class="ambient-glow-1"></div>
+  <div class="ambient-glow-2"></div>
 
-  <!-- Top Navigation Bar -->
-  <nav class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 transition-all shadow-sm">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-        
-        <!-- Custom Transparent Logo -->
-        <a href="#" class="flex items-center gap-3">
-          <img src="https://i.postimg.cc/Xvz3qk36/6126D367-0AFE-4A63-A7D0-CE03B5CC753C-removebg-preview.png" alt="FinanceSync" class="h-10 md:h-11 w-auto object-contain transform hover:scale-105 transition-transform duration-300" />
-        </a>
-        
-        <!-- Auth Section / Profile Dropdown -->
-        <div id="navAuthSection" class="flex items-center gap-4">
-          <button onclick="handleAuthClick()" class="inline-flex items-center gap-2 px-5 py-2 bg-slate-800 border border-slate-700 hover:border-cyan-500/50 hover:bg-slate-700 text-slate-200 text-sm font-semibold rounded-xl transition-all shadow-sm focus:outline-none transform hover:-translate-y-0.5">
-            Sign In
-          </button>
-        </div>
+  <!-- Floating Navigation Dock -->
+  <div class="fixed top-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none transition-all">
+    <nav class="glass-panel w-full max-w-5xl rounded-full px-6 py-3 flex justify-between items-center pointer-events-auto">
+      
+      <!-- Custom Transparent Logo -->
+      <a href="#" class="flex items-center gap-3">
+        <img src="https://i.postimg.cc/Xvz3qk36/6126D367-0AFE-4A63-A7D0-CE03B5CC753C-removebg-preview.png" alt="FinanceSync" class="h-8 md:h-10 w-auto object-contain transform hover:scale-105 transition-transform duration-300" />
+      </a>
+      
+      <!-- Auth Section / Profile Dropdown -->
+      <div id="navAuthSection" class="flex items-center gap-4">
+        <button onclick="handleAuthClick()" class="inline-flex items-center gap-2 px-6 py-2.5 bg-white/5 border border-white/10 hover:border-cyan-500/50 hover:bg-white/10 text-white text-sm font-outfit font-semibold rounded-full transition-all shadow-sm focus:outline-none transform hover:-translate-y-0.5 backdrop-blur-md">
+          Sign In
+        </button>
       </div>
-    </div>
-  </nav>
+    </nav>
+  </div>
 
   <!-- LANDING PAGE -->
-  <div id="landingPage" class="relative overflow-hidden transition-opacity duration-500">
-    <div class="absolute inset-0 bg-grid-pattern [mask-image:linear-gradient(to_bottom,white,transparent)] pointer-events-none"></div>
-    
-    <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-32 text-center animate-fade-in">
-      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-950/30 border border-cyan-800/50 text-cyan-400 text-xs font-semibold uppercase tracking-wide mb-8 shadow-sm">
+  <div id="landingPage" class="relative overflow-hidden transition-opacity duration-700 pt-40 pb-32">
+    <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center animate-fade-in">
+      
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-cyan-400 text-xs font-outfit font-bold uppercase tracking-[0.2em] mb-10 shadow-sm border-cyan-500/20">
         <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span></span>
         100% Private & Serverless
       </div>
       
-      <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight mb-8 leading-tight">
+      <h1 class="text-6xl md:text-7xl lg:text-8xl font-outfit font-extrabold text-white tracking-tight mb-8 leading-[1.1]">
         Master your money.<br>
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Keep your data.</span>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500">Keep your data.</span>
       </h1>
       
-      <p class="text-lg md:text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed">
-        A premium financial dashboard that syncs directly to your personal Google Drive. Build custom trackers, monitor savings, and never hand your data to a third party again.
+      <p class="text-lg md:text-xl text-slate-400 mb-14 max-w-2xl mx-auto leading-relaxed font-light">
+        A cinematic financial terminal that syncs directly to your personal Google Drive. Build custom trackers, monitor wealth, and never hand your data to a third party again.
       </p>
       
-      <button onclick="handleAuthClick()" class="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-lg font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] focus:outline-none transform hover:-translate-y-1 duration-200">
+      <button onclick="handleAuthClick()" class="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-lg font-outfit font-bold rounded-2xl transition-all shadow-[0_0_30px_rgba(6,182,212,0.3)] hover:shadow-[0_0_50px_rgba(6,182,212,0.5)] focus:outline-none transform hover:-translate-y-1 hover:scale-105 duration-300 border border-white/10">
         <svg class="w-6 h-6" viewBox="0 0 87.3 58.1" xmlns="http://www.w3.org/2000/svg"><path d="M26.6 57.5L0 12.3h52.8z" fill="#FFD04B"/><path d="M87.3 58.1L60.9 12.3H7.5l26.6 45.8z" fill="#1AA15F"/><path d="M52.8 0L26.6 45.8h53.2z" fill="#4C8BF5"/></svg>
         Connect Google Drive
       </button>
 
       <!-- Feature Highlights -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 text-left">
-        <div class="bg-slate-800/50 backdrop-blur-sm p-6 rounded-2xl border border-slate-700/50 hover:border-cyan-500/40 transition-all duration-300 transform hover:-translate-y-1">
-          <div class="w-10 h-10 bg-slate-900 border border-slate-700 text-cyan-400 rounded-xl flex items-center justify-center mb-4"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg></div>
-          <h3 class="text-lg font-bold text-white mb-2">Absolute Privacy</h3>
-          <p class="text-sm text-slate-400">Your financial data never touches our servers. Everything is stored and encrypted securely in your own Google account.</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-32 text-left">
+        <div class="glass-panel p-8 rounded-3xl hover:border-cyan-500/30 transition-all duration-500 transform hover:-translate-y-2 group">
+          <div class="w-12 h-12 bg-black/50 border border-white/10 text-cyan-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg></div>
+          <h3 class="text-xl font-outfit font-bold text-white mb-3">Absolute Privacy</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">Your financial data never touches our servers. Everything is encrypted securely in your own Google account.</p>
         </div>
-        <div class="bg-slate-800/50 backdrop-blur-sm p-6 rounded-2xl border border-slate-700/50 hover:border-blue-500/40 transition-all duration-300 transform hover:-translate-y-1">
-          <div class="w-10 h-10 bg-slate-900 border border-slate-700 text-blue-400 rounded-xl flex items-center justify-center mb-4"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg></div>
-          <h3 class="text-lg font-bold text-white mb-2">Dynamic Trackers</h3>
-          <p class="text-sm text-slate-400">Create unlimited, isolated trackers. Separate your daily expenses from your emergency fund or vacation savings.</p>
+        <div class="glass-panel p-8 rounded-3xl hover:border-blue-500/30 transition-all duration-500 transform hover:-translate-y-2 group">
+          <div class="w-12 h-12 bg-black/50 border border-white/10 text-blue-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg></div>
+          <h3 class="text-xl font-outfit font-bold text-white mb-3">Dynamic Trackers</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">Create unlimited, isolated trackers. Separate daily expenses from your emergency fund instantly.</p>
         </div>
-        <div class="bg-slate-800/50 backdrop-blur-sm p-6 rounded-2xl border border-slate-700/50 hover:border-emerald-500/40 transition-all duration-300 transform hover:-translate-y-1">
-          <div class="w-10 h-10 bg-slate-900 border border-slate-700 text-emerald-400 rounded-xl flex items-center justify-center mb-4"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
-          <h3 class="text-lg font-bold text-white mb-2">Real-Time Sync</h3>
-          <p class="text-sm text-slate-400">Log a transaction on your phone, and it instantly populates into a beautifully organized Google Spreadsheet.</p>
+        <div class="glass-panel p-8 rounded-3xl hover:border-purple-500/30 transition-all duration-500 transform hover:-translate-y-2 group">
+          <div class="w-12 h-12 bg-black/50 border border-white/10 text-purple-400 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
+          <h3 class="text-xl font-outfit font-bold text-white mb-3">Real-Time Sync</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">Log a transaction on your phone, and it seamlessly populates into a perfectly formatted Google Sheet.</p>
         </div>
       </div>
     </div>
   </div>
 
   <!-- MAIN DASHBOARD -->
-  <div id="dashboardView" class="hidden max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 animate-fade-in">
+  <div id="dashboardView" class="hidden max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 animate-fade-in">
     
-    <!-- Clean Structured Header Bar -->
-    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-sm mb-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-      <div id="trackerTabs" class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1"></div>
+    <!-- Dashboard Header Controls -->
+    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 mb-8">
+      <!-- Tracker Tabs (Pills) -->
+      <div id="trackerTabs" class="flex items-center gap-3 overflow-x-auto no-scrollbar py-2"></div>
       
-      <div class="flex items-center gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-700">
-        <div class="relative flex-1 md:flex-initial">
-          <select id="currencySelector" onchange="updateCurrency(this.value)" class="w-full md:w-auto appearance-none bg-slate-900 border border-slate-700 text-white text-sm font-semibold rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all cursor-pointer">
+      <div class="flex items-center gap-4 shrink-0">
+        <div class="relative">
+          <select id="currencySelector" onchange="updateCurrency(this.value)" class="appearance-none glass-panel text-white text-sm font-mono-data font-bold rounded-xl px-5 py-3 pr-10 focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer">
             <option value="$">USD ($)</option>
             <option value="€">EUR (€)</option>
             <option value="£">GBP (£)</option>
             <option value="৳">BDT (৳)</option>
             <option value="₹">INR (₹)</option>
           </select>
-          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </div>
         </div>
 
-        <button onclick="openModal()" class="flex items-center justify-center gap-2 px-4 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-900 text-sm font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:shadow-[0_0_20px_rgba(6,182,212,0.4)] transform hover:-translate-y-0.5 duration-150">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        <button onclick="openModal()" class="flex items-center justify-center gap-2 px-5 py-3 bg-cyan-500 hover:bg-cyan-400 text-black text-sm font-outfit font-bold rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] transform hover:scale-105 duration-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
           New Tracker
         </button>
       </div>
     </div>
 
     <!-- Tracker Interface -->
-    <main id="trackerInterface" class="grid grid-cols-1 lg:grid-cols-12 gap-8 opacity-50 pointer-events-none transition-all duration-300">
+    <main id="trackerInterface" class="grid grid-cols-1 lg:grid-cols-12 gap-8 opacity-50 pointer-events-none transition-all duration-500">
       
-      <!-- Form & Stats -->
+      <!-- Side Panel: Stats & Input -->
       <div class="lg:col-span-4 space-y-6">
-        <div id="statCard" class="bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-700 text-white relative overflow-hidden transition-all duration-500 transform hover:scale-[1.02]">
+        
+        <!-- Glowing Stat Card -->
+        <div id="statCard" class="relative glass-panel rounded-3xl p-8 overflow-hidden transition-all duration-500 group">
+          <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
           <div class="relative z-10">
-            <p id="statLabel" class="text-slate-400 text-xs font-semibold mb-1 uppercase tracking-wider">Total Amount</p>
-            <h3 id="statTotal" class="text-3xl font-bold"><span class="currency-symbol">$</span>0.00</h3>
+            <p id="statLabel" class="text-cyan-400 text-xs font-outfit font-bold uppercase tracking-[0.15em] mb-3">Total Amount</p>
+            <h3 id="statTotal" class="text-5xl font-mono-data font-bold text-white tracking-tight"><span class="currency-symbol opacity-50">$</span>0.00</h3>
           </div>
-          <svg class="absolute -bottom-4 -right-4 w-32 h-32 opacity-10" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"/></svg>
         </div>
 
-        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-sm">
-          <h2 id="formTitle" class="text-base font-bold text-white mb-5 pb-4 border-b border-slate-700 flex items-center gap-2">
-            <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            New Entry
+        <!-- Glassmorphic Input Form -->
+        <div class="glass-panel p-8 rounded-3xl">
+          <h2 id="formTitle" class="text-lg font-outfit font-bold text-white mb-6 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+               <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            </div>
+            Record Entry
           </h2>
           
-          <form id="expenseForm" class="space-y-4">
+          <form id="expenseForm" class="space-y-5">
             <div>
-              <label class="block text-sm font-medium text-slate-300 mb-1">Date</label>
-              <input type="date" id="expDate" required class="w-full px-3 py-2 border border-slate-600 rounded-xl text-sm text-white bg-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all" />
+              <label class="block text-xs font-outfit font-medium text-slate-400 mb-2 uppercase tracking-wide">Date</label>
+              <input type="date" id="expDate" required class="w-full px-4 py-3 glass-input rounded-xl text-sm font-mono-data" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-300 mb-1">Description</label>
-              <input type="text" id="expDesc" placeholder="e.g., Grocery store" required class="w-full px-3 py-2 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 bg-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all" />
+              <label class="block text-xs font-outfit font-medium text-slate-400 mb-2 uppercase tracking-wide">Description</label>
+              <input type="text" id="expDesc" placeholder="e.g., Apple Store" required class="w-full px-4 py-3 glass-input rounded-xl text-sm placeholder-white/20" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-300 mb-1">Category</label>
-              <select id="expCategory" class="w-full px-3 py-2 border border-slate-600 rounded-xl text-sm text-white bg-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all"></select>
+              <label class="block text-xs font-outfit font-medium text-slate-400 mb-2 uppercase tracking-wide">Category</label>
+              <select id="expCategory" class="w-full px-4 py-3 glass-input rounded-xl text-sm appearance-none"></select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-300 mb-1">Amount</label>
+              <label class="block text-xs font-outfit font-medium text-slate-400 mb-2 uppercase tracking-wide">Amount</label>
               <div class="flex gap-3">
                 <div class="relative flex-1">
-                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span class="text-slate-400 sm:text-sm currency-symbol">$</span>
+                  <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <span class="text-cyan-400 font-mono-data font-bold currency-symbol">$</span>
                   </div>
-                  <input type="number" step="0.01" id="expAmount" placeholder="0.00" required class="w-full pl-7 pr-3 py-2 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 bg-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all" />
+                  <input type="number" step="0.01" id="expAmount" placeholder="0.00" required class="w-full pl-9 pr-4 py-3 glass-input rounded-xl text-lg font-mono-data font-bold placeholder-white/20" />
                 </div>
-                <button type="submit" id="submitBtn" class="w-12 h-[38px] flex items-center justify-center bg-cyan-500 hover:bg-cyan-400 text-slate-900 rounded-xl transition-all shadow-sm focus:outline-none transform hover:scale-105 active:scale-95 duration-150">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                <button type="submit" id="submitBtn" class="w-14 h-auto flex items-center justify-center bg-white text-black hover:bg-cyan-400 rounded-xl transition-all focus:outline-none transform hover:scale-105 active:scale-95 duration-200 shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </button>
               </div>
             </div>
@@ -180,62 +221,62 @@
         </div>
       </div>
 
-      <!-- Data Table -->
+      <!-- Main Ledger Table -->
       <div class="lg:col-span-8">
-        <div class="bg-slate-800 rounded-2xl border border-slate-700 shadow-sm overflow-hidden flex flex-col h-full">
-          <div class="p-6 border-b border-slate-700 bg-slate-800 flex justify-between items-center">
-            <h2 id="tableHeaderTitle" class="text-base font-bold text-white">Ledger</h2>
-            <span class="text-xs font-semibold px-2.5 py-1 bg-slate-900 text-slate-300 rounded-md border border-slate-700 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span> Live</span>
+        <div class="glass-panel rounded-3xl overflow-hidden flex flex-col h-full border-t border-l border-white/10 backdrop-blur-3xl">
+          <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
+            <h2 id="tableHeaderTitle" class="text-lg font-outfit font-bold text-white">Ledger History</h2>
+            <span class="text-xs font-mono-data font-bold px-3 py-1.5 bg-white/5 text-cyan-400 rounded-full border border-cyan-500/20 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,1)]"></span> LIVE SYNC</span>
           </div>
           
           <div class="hidden sm:block overflow-x-auto">
             <table class="w-full text-left text-sm whitespace-nowrap">
-              <thead class="bg-slate-900/50 text-slate-400 text-xs uppercase font-semibold border-b border-slate-700">
+              <thead class="bg-black/20 text-slate-500 text-xs font-outfit uppercase tracking-wider border-b border-white/5">
                 <tr>
-                  <th class="px-6 py-3">Date</th>
-                  <th class="px-6 py-3">Description</th>
-                  <th class="px-6 py-3">Category</th>
-                  <th class="px-6 py-3 text-right" id="tableAmountHeader">Amount Spend</th>
+                  <th class="px-8 py-4 font-medium">Date</th>
+                  <th class="px-8 py-4 font-medium">Description</th>
+                  <th class="px-8 py-4 font-medium">Category</th>
+                  <th class="px-8 py-4 text-right font-medium" id="tableAmountHeader">Amount</th>
                 </tr>
               </thead>
-              <tbody id="expenseTableBody" class="divide-y divide-slate-700/50"></tbody>
+              <tbody id="expenseTableBody" class="divide-y divide-white/5"></tbody>
             </table>
           </div>
 
-          <div class="sm:hidden divide-y divide-slate-700/50" id="mobileExpenseList"></div>
+          <div class="sm:hidden divide-y divide-white/5" id="mobileExpenseList"></div>
         </div>
       </div>
     </main>
   </div>
 
   <!-- Create New Tracker Modal -->
-  <div id="createModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm transition-all">
-    <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-scale-up">
-      <div class="p-6 border-b border-slate-700">
-        <h3 class="text-xl font-bold text-white">Create New Tracker</h3>
-        <p class="text-sm text-slate-400 mt-1">Add a new spreadsheet tab to your database.</p>
+  <div id="createModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-black/80 backdrop-blur-xl transition-all">
+    <div class="glass-panel w-full max-w-md rounded-3xl overflow-hidden animate-scale-up border-white/10">
+      <div class="p-8 border-b border-white/5">
+        <h3 class="text-2xl font-outfit font-bold text-white">New Tracker</h3>
+        <p class="text-sm text-slate-400 mt-2 font-light">Create a segregated environment in your database.</p>
       </div>
-      <form id="newTrackerForm" class="p-6 space-y-5">
+      <form id="newTrackerForm" class="p-8 space-y-6">
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-1">Tracker Name</label>
-          <input type="text" id="newTrackerName" placeholder="e.g., Vacation Fund" required class="w-full px-3 py-2 border border-slate-600 rounded-xl text-sm text-white placeholder-slate-500 bg-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all" />
+          <label class="block text-xs font-outfit font-medium text-slate-400 mb-2 uppercase tracking-wide">Tracker Name</label>
+          <input type="text" id="newTrackerName" placeholder="e.g., Vacation Fund" required class="w-full px-4 py-3 glass-input rounded-xl text-sm font-outfit" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-slate-300 mb-1">Tracker Type</label>
-          <div class="grid grid-cols-2 gap-3 mt-2">
-            <label class="relative flex cursor-pointer rounded-xl border bg-slate-900 p-3 shadow-sm focus:outline-none border-slate-700 has-[:checked]:border-blue-500 has-[:checked]:ring-1 has-[:checked]:ring-blue-500 transition-all">
+          <label class="block text-xs font-outfit font-medium text-slate-400 mb-2 uppercase tracking-wide">Type</label>
+          <div class="grid grid-cols-2 gap-4 mt-2">
+            <label class="relative flex cursor-pointer rounded-2xl border bg-black/30 p-4 transition-all border-white/10 hover:bg-white/5 has-[:checked]:border-cyan-500 has-[:checked]:bg-cyan-500/5">
               <input type="radio" name="trackerType" value="Expense" class="sr-only" checked>
-              <span class="flex flex-col"><span class="block text-sm font-medium text-white">Expense</span><span class="block text-xs text-slate-400 mt-1">Track daily spending.</span></span>
+              <span class="flex flex-col"><span class="block text-sm font-outfit font-bold text-white">Expense</span><span class="block text-xs text-slate-500 mt-1">Track outflow.</span></span>
             </label>
-            <label class="relative flex cursor-pointer rounded-xl border bg-slate-900 p-3 shadow-sm focus:outline-none border-slate-700 has-[:checked]:border-emerald-500 has-[:checked]:ring-1 has-[:checked]:ring-emerald-500 transition-all">
+            <label class="relative flex cursor-pointer rounded-2xl border bg-black/30 p-4 transition-all border-white/10 hover:bg-white/5 has-[:checked]:border-purple-500 has-[:checked]:bg-purple-500/5">
               <input type="radio" name="trackerType" value="Savings" class="sr-only">
-              <span class="flex flex-col"><span class="block text-sm font-medium text-white">Savings</span><span class="block text-xs text-slate-400 mt-1">Track money saved.</span></span>
+              <span class="flex flex-col"><span class="block text-sm font-outfit font-bold text-white">Savings</span><span class="block text-xs text-slate-500 mt-1">Track growth.</span></span>
             </label>
           </div>
         </div>
         <div class="flex justify-end gap-3 pt-4">
-          <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm font-medium text-slate-300 bg-slate-800 border border-slate-600 rounded-xl hover:bg-slate-700 transition-colors">Cancel</button>
-          <button type="submit" id="createTrackerBtn" class="px-4 py-2 text-sm font-bold text-slate-900 bg-cyan-500 hover:bg-cyan-400 rounded-xl transition-all shadow-sm">Create Tracker</button>
+          <button type="button" onclick="closeModal()" class="px-5 py-2.5 text-sm font-outfit font-bold text-slate-300 bg-transparent hover:bg-white/5 rounded-xl transition-colors">Cancel</button>
+          <button type="submit" id="createTrackerBtn" class="px-6 py-2.5 text-sm font-outfit font-bold text-black bg-white hover:bg-cyan-400 rounded-xl transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)]">Initialize</button>
         </div>
       </form>
     </div>
@@ -265,15 +306,28 @@
     window.onload = () => {
       document.getElementById('currencySelector').value = currentCurrency;
       applyCurrencyToUI();
+      
       tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
         callback: async (tokenResponse) => {
           if (tokenResponse.error !== undefined) { console.error(tokenResponse); return; }
           accessToken = tokenResponse.access_token;
+          
+          const expiresIn = tokenResponse.expires_in || 3500;
+          localStorage.setItem('financesync_token', accessToken);
+          localStorage.setItem('financesync_token_expiry', Date.now() + (expiresIn * 1000));
+          
           onAuthenticated();
         },
       });
+
+      const savedToken = localStorage.getItem('financesync_token');
+      const expiry = localStorage.getItem('financesync_token_expiry');
+      if (savedToken && expiry && Date.now() < parseInt(expiry)) {
+        accessToken = savedToken;
+        onAuthenticated();
+      }
     };
 
     function handleAuthClick() { tokenClient.requestAccessToken(); }
@@ -295,12 +349,14 @@
     function handleSignOut() {
       if (accessToken) { google.accounts.oauth2.revoke(accessToken); }
       accessToken = null;
+      localStorage.removeItem('financesync_token');
+      localStorage.removeItem('financesync_token_expiry');
       
       document.getElementById('dashboardView').classList.add('hidden');
       document.getElementById('landingPage').classList.remove('hidden');
       
       document.getElementById('navAuthSection').innerHTML = `
-        <button onclick="handleAuthClick()" class="inline-flex items-center gap-2 px-5 py-2 bg-slate-800 border border-slate-700 hover:border-cyan-500/50 hover:bg-slate-700 text-slate-200 text-sm font-semibold rounded-xl transition-all shadow-sm focus:outline-none">
+        <button onclick="handleAuthClick()" class="inline-flex items-center gap-2 px-6 py-2.5 bg-white/5 border border-white/10 hover:border-cyan-500/50 hover:bg-white/10 text-white text-sm font-outfit font-semibold rounded-full transition-all shadow-sm focus:outline-none transform hover:-translate-y-0.5 backdrop-blur-md">
           Sign In
         </button>
       `;
@@ -353,15 +409,15 @@
     async function onAuthenticated() {
       document.getElementById('landingPage').classList.add('hidden');
       document.getElementById('dashboardView').classList.remove('hidden');
-      document.getElementById('trackerTabs').innerHTML = '<span class="text-sm text-slate-400 animate-pulse px-2">Establishing secure connection...</span>';
+      document.getElementById('trackerTabs').innerHTML = '<span class="text-sm text-slate-500 font-mono-data animate-pulse px-4 py-2 border border-white/10 rounded-full bg-white/5">SYNCING_DATA...</span>';
       
-      let profileImgHtml = `<div class="w-9 h-9 rounded-full bg-slate-800 border-2 border-slate-600 flex items-center justify-center text-cyan-400 font-bold shadow-sm">U</div>`;
+      let profileImgHtml = `<div class="w-10 h-10 rounded-full bg-black/50 border border-white/20 flex items-center justify-center text-cyan-400 font-bold font-outfit shadow-sm">U</div>`;
       try {
         const userRes = await fetch('https://www.googleapis.com/oauth2/v1/userinfo?alt=json', { headers: { 'Authorization': `Bearer ${accessToken}` } });
         const userData = await userRes.json();
         userEmail = userData.email || '';
         if (userData.picture) {
-          profileImgHtml = `<img src="${userData.picture}" alt="Profile" class="w-9 h-9 rounded-full border-2 border-slate-700 shadow-sm transform hover:scale-105 transition-transform">`;
+          profileImgHtml = `<img src="${userData.picture}" alt="Profile" class="w-10 h-10 rounded-full border border-white/20 shadow-sm transform hover:scale-105 transition-transform">`;
         }
       } catch (e) { console.error("Could not load profile picture", e); }
 
@@ -370,27 +426,27 @@
           <button id="profileButton" onclick="toggleProfileMenu(event)" class="flex items-center focus:outline-none ring-2 ring-transparent hover:ring-cyan-500/50 rounded-full transition-all">
             ${profileImgHtml}
           </button>
-          <div id="profileDropdownMenu" class="absolute right-0 mt-3 w-64 bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl py-2 hidden z-50 animate-scale-up">
-            <div class="px-4 py-3 border-b border-slate-700/50">
-              <p class="text-[10px] tracking-wider text-slate-400 font-bold uppercase">Signed in as</p>
-              <p class="text-sm font-bold text-white truncate mt-0.5">${userEmail}</p>
+          <div id="profileDropdownMenu" class="absolute right-0 mt-4 w-72 glass-panel border border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] py-2 hidden z-50 animate-scale-up">
+            <div class="px-5 py-4 border-b border-white/5">
+              <p class="text-[10px] font-mono-data tracking-widest text-cyan-500 font-bold uppercase mb-1">Authenticated As</p>
+              <p class="text-sm font-outfit font-bold text-white truncate">${userEmail}</p>
             </div>
             
-            <div class="py-1">
-              <button onclick="openGoogleSheet()" class="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-700 hover:text-white font-medium flex items-center gap-2.5 transition-colors">
+            <div class="py-2 px-2">
+              <button onclick="openGoogleSheet()" class="w-full text-left px-4 py-3 text-sm font-outfit text-slate-300 hover:bg-white/5 hover:text-white rounded-xl flex items-center gap-3 transition-colors">
                 <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                View Google Sheet
+                Open Google Database
               </button>
-              <button onclick="exportDataCSV()" class="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-700 hover:text-white font-medium flex items-center gap-2.5 transition-colors">
+              <button onclick="exportDataCSV()" class="w-full text-left px-4 py-3 text-sm font-outfit text-slate-300 hover:bg-white/5 hover:text-white rounded-xl flex items-center gap-3 transition-colors mt-1">
                 <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                Export Active Ledger (CSV)
+                Export CSV Ledger
               </button>
             </div>
 
-            <div class="border-t border-slate-700/50 pt-1">
-              <button onclick="handleSignOut()" class="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:bg-slate-700 hover:text-red-300 font-medium flex items-center gap-2.5 transition-colors">
+            <div class="border-t border-white/5 pt-2 px-2 pb-1">
+              <button onclick="handleSignOut()" class="w-full text-left px-4 py-3 text-sm font-outfit text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl flex items-center gap-3 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                Log out
+                Terminate Session
               </button>
             </div>
           </div>
@@ -448,13 +504,11 @@
       tabsContainer.innerHTML = '';
       availableTrackers.forEach(tracker => {
         const isSavings = tracker.type === 'Savings';
-        // Dark mode tab colors
-        const colorClass = isSavings ? 'text-emerald-400 bg-emerald-900/20 border-emerald-800/50' : 'text-slate-300 bg-slate-800 border-slate-700';
         const btn = document.createElement('button');
         btn.onclick = () => selectTracker(tracker.fullTitle);
         btn.id = `tab-${tracker.fullTitle}`;
-        btn.className = `shrink-0 px-5 py-2 text-sm font-semibold rounded-full border transition-all duration-200 ${colorClass} opacity-60 hover:opacity-100`;
-        btn.innerHTML = `${tracker.name} <span class="font-normal text-xs opacity-75 ml-1">(${tracker.type})</span>`;
+        btn.className = `shrink-0 px-6 py-3 text-sm font-outfit font-bold rounded-2xl border transition-all duration-300 glass-panel opacity-50 hover:opacity-100 hover:border-white/20`;
+        btn.innerHTML = `${tracker.name} <span class="font-mono-data text-[10px] opacity-75 ml-2 uppercase tracking-wider">${tracker.type}</span>`;
         tabsContainer.appendChild(btn);
       });
     }
@@ -463,33 +517,36 @@
       currentActiveSheet = availableTrackers.find(t => t.fullTitle === fullTitle);
       
       document.querySelectorAll('#trackerTabs button').forEach(b => {
-        b.classList.remove('ring-2', 'ring-cyan-500', 'ring-offset-2', 'ring-offset-slate-900', 'opacity-100');
-        b.classList.add('opacity-60');
+        b.classList.remove('opacity-100', 'border-cyan-500/50', 'bg-white/10', 'border-purple-500/50');
+        b.classList.add('opacity-50', 'border-white/10', 'bg-transparent');
       });
+      
       const activeBtn = document.getElementById(`tab-${fullTitle}`);
-      activeBtn.classList.remove('opacity-60');
-      activeBtn.classList.add('ring-2', 'ring-cyan-500', 'ring-offset-2', 'ring-offset-slate-900', 'opacity-100');
+      const isSavings = currentActiveSheet.type === 'Savings';
+      
+      activeBtn.classList.remove('opacity-50', 'border-white/10', 'bg-transparent');
+      activeBtn.classList.add('opacity-100', 'bg-white/10', isSavings ? 'border-purple-500/50' : 'border-cyan-500/50');
 
       const trackerInterface = document.getElementById('trackerInterface');
       trackerInterface.classList.remove('opacity-50', 'pointer-events-none');
       trackerInterface.classList.add('animate-fade-in');
       setTimeout(() => trackerInterface.classList.remove('animate-fade-in'), 300);
       
-      const isSavings = currentActiveSheet.type === 'Savings';
       const statCard = document.getElementById('statCard');
       const statLabel = document.getElementById('statLabel');
       
-      document.getElementById('tableAmountHeader').innerText = isSavings ? 'Amount Save' : 'Amount Spend';
+      document.getElementById('tableAmountHeader').innerText = isSavings ? 'Amount Saved' : 'Amount Spent';
 
-      // Dark mode stat card states
       if (isSavings) {
-        statCard.className = 'bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-700 text-white relative overflow-hidden transition-all duration-500 transform hover:scale-[1.02] ring-1 ring-emerald-500/20';
-        statCard.querySelector('svg').classList.replace('text-blue-500', 'text-emerald-500');
-        statLabel.innerText = 'Total Saved';
+        statCard.className = 'relative glass-panel rounded-3xl p-8 overflow-hidden transition-all duration-500 group border-purple-500/30 shadow-[0_0_30px_rgba(168,85,247,0.1)]';
+        statCard.querySelector('.bg-gradient-to-br').className = 'absolute inset-0 bg-gradient-to-br from-purple-500/20 to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-500';
+        statLabel.className = 'text-purple-400 text-xs font-outfit font-bold uppercase tracking-[0.15em] mb-3';
+        statLabel.innerText = 'Total Accumulated';
       } else {
-        statCard.className = 'bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-700 text-white relative overflow-hidden transition-all duration-500 transform hover:scale-[1.02] ring-1 ring-blue-500/20';
-        statCard.querySelector('svg').classList.replace('text-emerald-500', 'text-blue-500');
-        statLabel.innerText = 'Total Spent';
+        statCard.className = 'relative glass-panel rounded-3xl p-8 overflow-hidden transition-all duration-500 group border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.1)]';
+        statCard.querySelector('.bg-gradient-to-br').className = 'absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-500';
+        statLabel.className = 'text-cyan-400 text-xs font-outfit font-bold uppercase tracking-[0.15em] mb-3';
+        statLabel.innerText = 'Total Expenditure';
       }
 
       const catSelect = document.getElementById('expCategory');
@@ -516,9 +573,9 @@
       let totalAmount = 0;
 
       if (rows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-12 text-center text-slate-500">No entries recorded yet.</td></tr>`;
-        mobileList.innerHTML = `<div class="p-8 text-center text-slate-500 text-sm">No entries recorded yet.</div>`;
-        document.getElementById('statTotal').innerHTML = `<span class="currency-symbol">${currentCurrency}</span>0.00`;
+        tbody.innerHTML = `<tr><td colspan="4" class="px-8 py-16 text-center text-slate-500 font-mono-data text-sm">NO_DATA_FOUND</td></tr>`;
+        mobileList.innerHTML = `<div class="p-10 text-center text-slate-500 font-mono-data text-sm">NO_DATA_FOUND</div>`;
+        document.getElementById('statTotal').innerHTML = `<span class="currency-symbol opacity-50">${currentCurrency}</span>0.00`;
         return;
       }
 
@@ -532,37 +589,37 @@
         const colorClass = isSavings && row[2] === 'Withdrawal' ? 'text-red-400' : 'text-white';
         
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-700/40 transition-colors group border-b border-slate-700/50 last:border-0';
+        tr.className = 'hover:bg-white/5 transition-colors group border-b border-white/5 last:border-0';
         tr.innerHTML = `
-          <td class="px-6 py-4 text-slate-400">${row[0] || '-'}</td>
-          <td class="px-6 py-4 font-medium text-slate-200">${row[1] || '-'}</td>
-          <td class="px-6 py-4"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-300 border border-slate-600">${row[2] || '-'}</span></td>
-          <td class="px-6 py-4 text-right font-semibold ${colorClass}">${prefix}<span class="currency-symbol">${currentCurrency}</span>${formattedVal}</td>
+          <td class="px-8 py-5 text-slate-400 font-mono-data text-sm">${row[0] || '-'}</td>
+          <td class="px-8 py-5 font-medium text-slate-200 font-outfit text-base">${row[1] || '-'}</td>
+          <td class="px-8 py-5"><span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-mono-data font-bold bg-white/10 text-slate-300 border border-white/10 uppercase tracking-widest">${row[2] || '-'}</span></td>
+          <td class="px-8 py-5 text-right font-mono-data text-base font-bold ${colorClass}">${prefix}<span class="currency-symbol opacity-50 mr-1">${currentCurrency}</span>${formattedVal}</td>
         `;
         tbody.appendChild(tr);
 
         const card = document.createElement('div');
-        card.className = 'p-4 bg-slate-800 hover:bg-slate-700/40 flex justify-between items-center transition-colors border-b border-slate-700/50 last:border-0';
+        card.className = 'p-6 bg-transparent hover:bg-white/5 flex justify-between items-center transition-colors border-b border-white/5 last:border-0';
         card.innerHTML = `
           <div>
-            <p class="text-sm font-bold text-slate-200">${row[1] || '-'}</p>
-            <div class="flex items-center gap-2 mt-1.5">
-              <span class="text-xs text-slate-400">${row[0] || '-'}</span>
-              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-700 text-slate-300 border border-slate-600 uppercase tracking-wider">${row[2] || '-'}</span>
+            <p class="text-base font-outfit font-bold text-slate-200">${row[1] || '-'}</p>
+            <div class="flex items-center gap-3 mt-2">
+              <span class="text-xs text-slate-400 font-mono-data">${row[0] || '-'}</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded bg-white/10 text-[9px] font-mono-data font-bold text-slate-300 border border-white/10 uppercase tracking-widest">${row[2] || '-'}</span>
             </div>
           </div>
-          <p class="text-sm font-bold ${colorClass}">${prefix}<span class="currency-symbol">${currentCurrency}</span>${formattedVal}</p>
+          <p class="text-lg font-mono-data font-bold ${colorClass}">${prefix}<span class="currency-symbol opacity-50 mr-1">${currentCurrency}</span>${formattedVal}</p>
         `;
         mobileList.appendChild(card);
       });
 
-      document.getElementById('statTotal').innerHTML = `<span class="currency-symbol">${currentCurrency}</span>${totalAmount.toFixed(2)}`;
+      document.getElementById('statTotal').innerHTML = `<span class="currency-symbol opacity-50">${currentCurrency}</span>${totalAmount.toFixed(2)}`;
     }
 
     document.getElementById('newTrackerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('createTrackerBtn');
-      btn.innerText = 'Creating...'; btn.disabled = true;
+      btn.innerText = 'INITIALIZING...'; btn.disabled = true;
 
       const name = document.getElementById('newTrackerName').value;
       const type = document.querySelector('input[name="trackerType"]:checked').value;
@@ -587,16 +644,16 @@
         selectTracker(fullTitle);
       } catch (err) {
         console.error(err);
-        alert('Failed to create tracker.');
+        alert('Failed to initialize tracker.');
       } finally {
-        btn.innerText = 'Create Tracker'; btn.disabled = false;
+        btn.innerText = 'Initialize'; btn.disabled = false;
       }
     });
 
     document.getElementById('expenseForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
-      submitBtn.innerHTML = '<svg class="w-5 h-5 animate-spin text-slate-900" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+      submitBtn.innerHTML = '<svg class="w-5 h-5 animate-spin text-black" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
       submitBtn.disabled = true;
 
       const date = document.getElementById('expDate').value;
@@ -618,9 +675,9 @@
         await fetchActiveTrackerData();
       } catch (err) {
         console.error(err);
-        alert("Failed to save.");
+        alert("Transmission failed.");
       } finally {
-        submitBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>';
+        submitBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>';
         submitBtn.disabled = false;
       }
     });
